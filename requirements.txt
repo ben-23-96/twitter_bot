@@ -1,0 +1,7 @@
+requests
+beautifulsoup4
+spotipy
+selenium
+webdriver-manager
+python-dotenv
+schedule
