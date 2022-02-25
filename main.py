@@ -59,5 +59,5 @@ while True:
         schedule.run_pending()
         sleep(30)
     except Exception as error:
-        print(f'there has been an error:\n{error}\n\n{traceback.format_exc()}')
+        print(f'there has been an error:\n{error}\n{traceback.format_exc()}')
         continue
