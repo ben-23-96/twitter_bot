@@ -46,10 +46,11 @@ def reply_to_mentions():
     twitter_bot.reply()
 
 
-schedule.every().day.at('09:42').do(wish_happy_birthdays)
+schedule.every().day.at('08:00').do(wish_happy_birthdays)
 schedule.every().day.at('09:00').do(random_tweet)
 schedule.every().day.at('13:00').do(random_tweet)
 schedule.every().day.at('19:00').do(random_tweet)
+schedule.every(1).minutes.do(wish_happy_birthdays)
 schedule.every(1).hours.do(reply_to_mentions)
 
 while True:
