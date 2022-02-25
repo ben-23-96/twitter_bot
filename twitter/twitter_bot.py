@@ -34,35 +34,35 @@ class Twitter_bot:
 
         self.driver.delete_all_cookies()
 
-        sign_in = WebDriverWait(self.driver, 10).until(
+        sign_in = WebDriverWait(self.driver, 60).until(
             EC.element_to_be_clickable((By.XPATH, '//a[@href="/login"]')))  # '//*[@id="react-root"]/div/div/div[2]/main/div/div/div[1]/div[1]/div/div[3]/div[5]/a/div')))
         self.driver.execute_script("arguments[0].click();", sign_in)
 
-        email_input = WebDriverWait(self.driver, 10).until(EC.element_to_be_clickable(
+        email_input = WebDriverWait(self.driver, 60).until(EC.element_to_be_clickable(
             (By.NAME, 'text')))
         email_input.send_keys(self.email + Keys.ENTER)
         try:
-            password_input = WebDriverWait(self.driver, 5).until(EC.element_to_be_clickable(
+            password_input = WebDriverWait(self.driver, 60).until(EC.element_to_be_clickable(
                 (By.NAME, 'password')))
             password_input.send_keys(self.password + Keys.ENTER)
         except:
-            username_input = WebDriverWait(self.driver, 10).until(EC.element_to_be_clickable(
+            username_input = WebDriverWait(self.driver, 60).until(EC.element_to_be_clickable(
                 (By.NAME, 'text')))
             username_input.send_keys(self.username + Keys.ENTER)
-            password_input = WebDriverWait(self.driver, 10).until(EC.element_to_be_clickable(
+            password_input = WebDriverWait(self.driver, 60).until(EC.element_to_be_clickable(
                 (By.NAME, 'password')))
             password_input.send_keys(self.password + Keys.ENTER)
-        sleep(5)
+        sleep(20)
 
     def tweet_text(self, message):
         """takes a messsage as string input and tweets the message and quits the browser.
         Bot must already be logged in."""
 
-        tweet_box = WebDriverWait(self.driver, 20).until(
+        tweet_box = WebDriverWait(self.driver, 60).until(
             EC.element_to_be_clickable((By.CLASS_NAME, 'DraftEditor-root')))
         tweet_box.click()
 
-        tweet_input = WebDriverWait(self.driver, 20).until(EC.element_to_be_clickable(
+        tweet_input = WebDriverWait(self.driver, 60).until(EC.element_to_be_clickable(
             (By.CLASS_NAME, 'public-DraftEditorPlaceholder-root')))
         ActionChains(self.driver).move_to_element(
             tweet_input).send_keys(f"{message}").perform()
@@ -70,7 +70,7 @@ class Twitter_bot:
         tweet_button = self.driver.find_element(
             By.XPATH, '//*[@id="react-root"]/div/div/div[2]/main/div/div/div/div/div/div[2]/div/div[2]/div[1]/div/div/div/div[2]/div[3]/div/div/div[2]/div[3]/div/span/span')
         self.driver.execute_script("arguments[0].click();", tweet_button)
-        sleep(5)
+        sleep(10)
         self.driver.quit()
 
     def tweet_image(self, image, message=""):
@@ -80,7 +80,7 @@ class Twitter_bot:
 
         input_xpath = '//*[@id="react-root"]/div/div/div[2]/main/div/div/div/div/div/div[2]/div/div[2]/div[1]/div/div/div/div[2]/div[3]/div/div/div[1]/input'
         image_path = image
-        input_element = WebDriverWait(self.driver, 19).until(
+        input_element = WebDriverWait(self.driver, 60).until(
             EC.presence_of_element_located((By.XPATH, input_xpath)))
         input_element.send_keys(image_path)
         self.tweet_text(message)
@@ -93,7 +93,7 @@ class Twitter_bot:
         have been returned from this method, they are zipped with the selenium object that is the reply button for that message.
         Returns a zip object containing messages to be sent in reply and the seleniuim object for the reply button for each message."""
 
-        sleep(6)
+        sleep(30)
         times = self.driver.find_elements(By.XPATH, '//time')
 
         current_time = datetime.now()
@@ -165,31 +165,31 @@ class Twitter_bot:
         Loops through replying to each mention without a reply.
         Quits the driver when finished."""
 
-        notifications = WebDriverWait(self.driver, 10).until(
+        notifications = WebDriverWait(self.driver, 60).until(
             EC.presence_of_element_located((By.XPATH, '//a[@href="/notifications"]')))
         notifications.click()
         sleep(6)
-        mentions = WebDriverWait(self.driver, 10).until(
+        mentions = WebDriverWait(self.driver, 60).until(
             EC.presence_of_element_located((By.XPATH, '//a[@href="/notifications/mentions"]')))
         mentions.click()
 
-        reply_button = WebDriverWait(self.driver, 10).until(
+        reply_button = WebDriverWait(self.driver, 60).until(
             EC.presence_of_element_located((By.XPATH, '//article//div[@data-testid="reply"]')))
 
         replies_and_reply_buttons = self.find_messages_needing_reply()
 
         for reply, button in replies_and_reply_buttons:
-            WebDriverWait(self.driver, 20).until(EC.presence_of_element_located(
+            WebDriverWait(self.driver, 60).until(EC.presence_of_element_located(
                 (By.XPATH, '//article//div[@data-testid="reply"]')))
             self.driver.execute_script("arguments[0].click();", button)
-            tweet_box = WebDriverWait(self.driver, 10).until(
+            tweet_box = WebDriverWait(self.driver, 60).until(
                 EC.element_to_be_clickable((By.CLASS_NAME, 'DraftEditor-root')))
             tweet_box.click()
-            tweet_input = WebDriverWait(self.driver, 10).until(EC.element_to_be_clickable(
+            tweet_input = WebDriverWait(self.driver, 60).until(EC.element_to_be_clickable(
                 (By.CLASS_NAME, 'public-DraftEditorPlaceholder-root')))
             ActionChains(self.driver).move_to_element(
                 tweet_input).send_keys(reply).perform()
-            tweet_send = WebDriverWait(self.driver, 10).until(EC.element_to_be_clickable(
+            tweet_send = WebDriverWait(self.driver, 60).until(EC.element_to_be_clickable(
                 (By.XPATH, '//div[@data-testid="tweetButton"]'))).click()
-            sleep(5)
+            sleep(20)
         self.driver.quit()
