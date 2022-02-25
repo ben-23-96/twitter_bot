@@ -5,6 +5,7 @@ from messages.message_writer import Message
 from birthday.birthday_wisher import Birthday
 from os import getcwd
 from time import sleep
+import traceback
 
 
 topics = Topics()
@@ -58,5 +59,5 @@ while True:
         schedule.run_pending()
         sleep(30)
     except Exception as error:
-        print(f'there has been an error:\n{error}')
+        print(f'there has been an error:\n{error}\n{traceback.format_exc()}')
         continue
