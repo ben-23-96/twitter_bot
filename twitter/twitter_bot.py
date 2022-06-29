@@ -20,6 +20,11 @@ class Twitter_bot:
         """class that uses selenium to operate a bot that can post and reply on twitter"""
 
         self.service = Service(executable_path=ChromeDriverManager().install())
+        #self.option = webdriver.ChromeOptions()
+        # self.option.add_argument(
+        #    '--disable-blink-features=AutomationControlled')
+        # self.option.add_argument("window-size=1280,800")
+        #self.option.add_argument("user-agent=Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/74.0.3729.169 Safari/537.36")
         self.driver = webdriver.Chrome(service=self.service)
         self.email = getenv('EMAIL')
         self.password = getenv('PASSWORD')
