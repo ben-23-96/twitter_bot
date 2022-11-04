@@ -10,3 +10,4 @@ time
 traceback
 sqlalchemy
 requests-oauthlib
+mysqlclient

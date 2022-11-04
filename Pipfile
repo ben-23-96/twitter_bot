@@ -10,6 +10,7 @@ spotipy = "*"
 python-dotenv = "*"
 requests-oauthlib = "*"
 sqlalchemy = "*"
+mysqlclient = "*"
 
 [dev-packages]
 autopep8 = "*"
