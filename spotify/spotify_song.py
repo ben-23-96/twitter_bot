@@ -1,4 +1,5 @@
-from spotipy import Spotify, SpotifyClientCredentials
+from spotipy import Spotify  # , SpotifyClientCredentials
+from spotipy.oauth2 import SpotifyClientCredentials
 from requests import get
 from bs4 import BeautifulSoup
 from dotenv import load_dotenv
@@ -16,7 +17,7 @@ class SpotifySongFinder:
         self.secret = getenv('SPOTIFY_SECRET')
         self.auth_manager = SpotifyClientCredentials(
             client_id=self.cid, client_secret=self.secret)
-        self.sp = Spotify(auth_manager=self.auth_manager)
+        self.sp = Spotify(client_credentials_manager=self.auth_manager)
         self.songs = ''
 
     def scrape_top_song(self, date):
@@ -32,15 +33,17 @@ class SpotifySongFinder:
 
         soup_data = soup.find_all(
             name='li', class_='o-chart-results-list__item', limit=4)
-
-        soup_song = soup_data[3]
+        try:
+            soup_song = soup_data[3]
+        except IndexError:
+            return False
 
         song = soup_song.find(name='h3', class_='c-title',
                               id="title-of-a-story").string.strip('\n')
         artist = soup_song.find(
             name='span', class_='c-label').string.strip('\n')
 
-        return song, artist
+        return {'song': song, 'artist': artist}
 
     def find_song_uri(self, song, artist):
         """takes a string inputs for a song and artist and returns the spotify uri code
@@ -66,7 +69,11 @@ class SpotifySongFinder:
         returns a dictionary of strings with keys ''link'-the spotify link to the song, 'artist'-the artist, 'song'-the song,
         'date'-YYYY-MM-DD """
 
-        song, artist = self.scrape_top_song(date)
-        uri_code = self.find_song_uri(song, artist)
-        link = f'https://open.spotify.com/track/{uri_code}'
-        return {'link': link, 'artist': artist, 'song': song, 'date': date}
+        song_data = self.scrape_top_song(date)
+        if song_data:
+            song, artist = song_data['song'], song_data['artist']
+            uri_code = self.find_song_uri(song, artist)
+            link = f'https://open.spotify.com/track/{uri_code}'
+            return {'link': link, 'artist': artist, 'song': song, 'date': date, 'song_found': True}
+        else:
+            return {'date': date, 'song_found': False}

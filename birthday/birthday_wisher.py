@@ -1,48 +1,41 @@
-import json
 from datetime import datetime, date
+from db import session, Birthdays
+from sqlalchemy import select
 
 
 class Birthday:
     def __init__(self):
-        """class that can add birthday information to the birthdays.txt file for storage
-        and read the file to see if there is a birthday today on the birthdays.json file"""
+        """class that can add birthday information to the birthdays table on the datbase and read the table to see if there is a birthday today"""
         pass
 
     def add_birthday(self, user, date):
         """takes the username of a twitter user and birthday date YYYY-MM-DD as strings as input,
-         adds these details as json to the birthdays.json file"""
+         adds these details to the database"""
 
-        with open('birthday/birthdays.json', 'r') as file:
-            data = json.load(file)
-            try:
-                data["birthdays"][user] = date
-            except KeyError:
-                data = {"birthdays": {}}
-            else:
-                data["birthdays"][user] = date
-        with open('birthday/birthdays.json', 'w') as file:
-            json.dump(data, file)
+        new_birthday = Birthdays(name=user, birthday=date)
+
+        session.add(new_birthday)
+
+        session.commit()
 
     def check_birthdays(self):
-        """reads the birthdays.json file and checks the data to see if any of the birthdays match the current date,
+        """reads the birthdays table and checks the data to see if any of the birthdays match the current date,
         if there are birthdays today returns a list of dictionaires, each dictionary containing the twitter username, 'user',
         and their age, 'age'.
         if there are no birthdays returns a empty list"""
 
         today = datetime.date(datetime.now())
-        birthdays = []
-        with open('birthday/birthdays.json', 'r') as file:
-            try:
-                data = json.load(file)['birthdays']
-            except KeyError:
-                return birthdays
-            else:
-                for user, birthday in data.items():
+        birthdays_today = []
 
-                    year, month, day = birthday.split('-')
-                    bday = date(int(year), int(month), int(day))
+        birthdays = session.query(Birthdays).all()
 
-                    if bday.day == today.day and bday.month == today.month:
-                        age = round((today - bday).days/365)
-                        birthdays.append({'user': user, 'age': age})
-        return birthdays
+        for birthday in birthdays:
+            print(birthday)
+            year, month, day = birthday.birthday.split('-')
+            bday = date(int(year), int(month), int(day))
+
+            if bday.day == today.day and bday.month == today.month:
+                age = round((today - bday).days/365)
+                birthdays_today.append(
+                    {'user': f'@{birthday.name}', 'age': age})
+        return birthdays_today

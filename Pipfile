@@ -7,10 +7,9 @@ name = "pypi"
 requests = "*"
 beautifulsoup4 = "*"
 spotipy = "*"
-selenium = "*"
-webdriver-manager = "*"
 python-dotenv = "*"
-schedule = "*"
+requests-oauthlib = "*"
+sqlalchemy = "*"
 
 [dev-packages]
 autopep8 = "*"
