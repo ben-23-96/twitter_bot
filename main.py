@@ -46,19 +46,20 @@ def get_mentions_in_past_hour():
 
 
 def reply_to_mentions(mentions):
-    temp = [mentions['data'][1]]
-    # for mention in mentions['data']:
-    for mention in temp:
+
+    for mention in mentions['data']:
 
         message, reply_id, author_id = mention['text'], mention['id'], mention['author_id']
         user = [user['username'] for user in mentions['includes']
                 ['users'] if author_id == user['id']]
+        try:
+            reply_message = select_reply(message, user[0])
 
-        reply_message = select_reply(message, user[0])
-
-        reply = {"text": reply_message, "reply": {
-            "in_reply_to_tweet_id": reply_id}}
-        reply_res = oauth.post(url=TWEET_URL, json=reply)
+            reply = {"text": reply_message, "reply": {
+                "in_reply_to_tweet_id": reply_id}}
+            reply_res = oauth.post(url=TWEET_URL, json=reply)
+        except:
+            continue
 
 
 def select_reply(message, user):
@@ -122,8 +123,8 @@ mentions_in_past_hour = get_mentions_in_past_hour()
 if mentions_in_past_hour:
     reply_to_mentions(mentions=mentions_in_past_hour)
 
-current_hour = datetime.utcnow().hour
 
+current_hour = datetime.utcnow().hour
 
 if current_hour == 8:
     wish_happy_birthdays()
