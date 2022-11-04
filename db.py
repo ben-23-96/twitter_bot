@@ -1,5 +1,9 @@
 from sqlalchemy import Column, Integer, String, create_engine
 from sqlalchemy.orm import declarative_base, Session
+from os import getenv
+from dotenv import load_dotenv
+
+load_dotenv()
 
 Base = declarative_base()
 
@@ -14,8 +18,14 @@ class Birthdays(Base):
         return f"User(id={self.id!r}, name={self.name!r}, birthday={self.birthday!r})"
 
 
+username = getenv('DATABASE_USERNAME')
+password = getenv('DATABASE_PASSWORD')
+host = getenv('DATABASE_HOST')
+database = getenv('DATABASE')
+port = getenv('PORT')
+
 engine = create_engine('mysql://{0}:{1}@{2}:{3}/{4}'.format(
-    'root', 'Katmando23*', 'localhost', 3306, 'twitter_bot_db'))
+    username, password, host, port, database))
 
 session = Session(engine)
 
