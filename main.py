@@ -64,6 +64,7 @@ def reply_to_mentions(mentions):
 
 def select_reply(message, user):
     tweet_words = message.lower().split()
+    print(tweet_words)
     if tweet_words[1] == 'spotify':
         song_finder = SpotifySongFinder()
         date = tweet_words[2]
@@ -71,6 +72,7 @@ def select_reply(message, user):
         reply = message_writer.write_spotify_message(song_info)
         return reply
     elif tweet_words[1] == 'birthday':
+        print('bday')
         birthday = Birthday()
         date = tweet_words[2]
         birthday.add_birthday(user, date)

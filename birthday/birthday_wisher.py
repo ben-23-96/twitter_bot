@@ -18,6 +18,8 @@ class Birthday:
 
         session.commit()
 
+        print('addded')
+
     def check_birthdays(self):
         """reads the birthdays table and checks the data to see if any of the birthdays match the current date,
         if there are birthdays today returns a list of dictionaires, each dictionary containing the twitter username, 'user',
