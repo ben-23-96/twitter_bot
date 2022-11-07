@@ -18,14 +18,9 @@ class Birthdays(Base):
         return f"User(id={self.id!r}, name={self.name!r}, birthday={self.birthday!r})"
 
 
-username = getenv('DATABASE_USERNAME')
-password = getenv('DATABASE_PASSWORD')
-host = getenv('DATABASE_HOST')
-database = getenv('DATABASE')
-port = getenv('PORT')
+database_url = getenv('JAWSDB_URL')
 
-engine = create_engine('mysql://{0}:{1}@{2}:{3}/{4}'.format(
-    username, password, host, port, database))
+engine = create_engine(database_url)
 
 session = Session(engine)
 
