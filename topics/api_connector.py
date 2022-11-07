@@ -28,8 +28,13 @@ class Topics:
                   'category': category,
                   'language': 'en'}
         response = get(self.news_url, params=params)
-        news_data = {'article_data': response.json(
-        )['articles'][0], 'news_category': category}
+        try:
+            article_data = response.json()['articles'][0]
+        except KeyError:
+            print('error getting news data')
+            print(response.status_code, response.json())
+            return False
+        news_data = {'article_data': article_data, 'news_category': category}
         return news_data
 
     def get_weather(self):
@@ -52,9 +57,15 @@ class Topics:
         print(response.status_code)
         if response.status_code == 200:
             nasa_data = response.json()
-            title = nasa_data['title']
-            image_url = nasa_data['hdurl']
+            try:
+                title = nasa_data['title']
+                image_url = nasa_data['hdurl']
+            except KeyError:
+                print('key error')
+                return False
             response = get(image_url, stream=True)
             image_object = response.content
             image_data = {'title': title, 'image': image_object}
             return image_data
+        else:
+            print(response.json())

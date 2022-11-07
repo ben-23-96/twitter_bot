@@ -24,6 +24,8 @@ class SpotifySongFinder:
         """takes a string input of date YYYY-MM-DD and finds the billboard top 100 number 1
         on that date, returning the song name and artist as strings"""
 
+        print('scraping billboard for top song')
+
         response = get(
             f'https://www.billboard.com/charts/hot-100/{date}/')
 
@@ -36,32 +38,36 @@ class SpotifySongFinder:
         try:
             soup_song = soup_data[3]
         except IndexError:
+            print('no song found on page')
             return False
 
         song = soup_song.find(name='h3', class_='c-title',
                               id="title-of-a-story").string.strip('\n')
         artist = soup_song.find(
             name='span', class_='c-label').string.strip('\n')
-
+        print('song found on billboard')
         return {'song': song, 'artist': artist}
 
     def find_song_uri(self, song, artist):
         """takes a string inputs for a song and artist and returns the spotify uri code
         for that song as a string"""
 
+        print('finding song on spotify')
         result = self.sp.search(
             q=f'artist:{artist}%20track:{song}', type='track')
         try:
             uri = result['tracks']['items'][0]['uri']
             url = result['tracks']['items'][0]['external_urls']['spotify']
+            uri_code = uri.split(':')[2]
         except IndexError:
             result = self.sp.search(q=f'track:{song}', type='track')
             try:
                 uri = result['tracks']['items'][0]['uri']
                 url = result['tracks']['items'][0]['external_urls']['spotify']
+                uri_code = uri.split(':')[2]
             except IndexError:
-                print('song not found')
-        uri_code = uri.split(':')[2]
+                print('song not found on spotify')
+                return False
         return uri_code
 
     def get_top_song_info(self, date):
@@ -73,7 +79,10 @@ class SpotifySongFinder:
         if song_data:
             song, artist = song_data['song'], song_data['artist']
             uri_code = self.find_song_uri(song, artist)
-            link = f'https://open.spotify.com/track/{uri_code}'
-            return {'link': link, 'artist': artist, 'song': song, 'date': date, 'song_found': True}
+            if uri_code:
+                link = f'https://open.spotify.com/track/{uri_code}'
+                return {'link': link, 'artist': artist, 'song': song, 'date': date, 'song_found': True}
+            else:
+                return {'date': date, 'song_found': False}
         else:
             return {'date': date, 'song_found': False}

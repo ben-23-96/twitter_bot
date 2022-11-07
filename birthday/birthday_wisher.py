@@ -12,13 +12,15 @@ class Birthday:
         """takes the username of a twitter user and birthday date YYYY-MM-DD as strings as input,
          adds these details to the database"""
 
+        print('adding birthday')
+
         new_birthday = Birthdays(name=user, birthday=date)
 
         session.add(new_birthday)
 
         session.commit()
 
-        print('addded')
+        print('birthdy added successfully')
 
     def check_birthdays(self):
         """reads the birthdays table and checks the data to see if any of the birthdays match the current date,
@@ -32,11 +34,13 @@ class Birthday:
         birthdays = session.query(Birthdays).all()
 
         for birthday in birthdays:
+            print('birthdays found')
             print(birthday)
             year, month, day = birthday.birthday.split('-')
             bday = date(int(year), int(month), int(day))
 
             if bday.day == today.day and bday.month == today.month:
+                print(f'birthday today {birthday}')
                 age = round((today - bday).days/365)
                 birthdays_today.append(
                     {'user': f'@{birthday.name}', 'age': age})

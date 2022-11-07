@@ -27,6 +27,8 @@ oauth = OAuth1Session(
 
 
 def get_mentions_in_past_hour():
+    print('get_mentions_in_past_hour function called')
+
     dtformat = '%Y-%m-%dT%H:%M:%SZ'
     time = datetime.utcnow()
     one_hour = time - timedelta(hours=1)
@@ -40,12 +42,15 @@ def get_mentions_in_past_hour():
     mentions_data = mentions_res.json()
 
     if mentions_data['meta']['result_count'] > 0:
+        print('mentions data returned')
         return mentions_data
     else:
+        print('no mentions in past hour')
         return False
 
 
 def reply_to_mentions(mentions):
+    print('reply_to_mentions function called')
 
     for mention in mentions['data']:
 
@@ -66,13 +71,14 @@ def select_reply(message, user):
     tweet_words = message.lower().split()
     print(tweet_words)
     if tweet_words[1] == 'spotify':
+        print('spotify reply')
         song_finder = SpotifySongFinder()
         date = tweet_words[2]
         song_info = song_finder.get_top_song_info(date)
         reply = message_writer.write_spotify_message(song_info)
         return reply
     elif tweet_words[1] == 'birthday':
-        print('bday')
+        print('bday reply')
         birthday = Birthday()
         date = tweet_words[2]
         birthday.add_birthday(user, date)
@@ -82,6 +88,8 @@ def select_reply(message, user):
 
 
 def wish_happy_birthdays():
+    print('wish_happy_birthdays function called')
+
     birthday = Birthday()
     birthdays_today = birthday.check_birthdays()
     if birthdays_today:
@@ -91,33 +99,63 @@ def wish_happy_birthdays():
 
 
 def tweet_nasa_image():
+    print('tweet_nasa_image function called')
+
     image_data = topic_selector.get_nasa_image()
-    title = image_data['title']
-    image_obj = image_data['image']
-    message = message_writer.write_nasa_message(title)
-    tweet_image(image=image_obj, message=message)
+    if image_data:
+        title = image_data['title']
+        image_obj = image_data['image']
+        message = message_writer.write_nasa_message(title)
+        tweet_image(image=image_obj, message=message)
+    else:
+        print('no image returned')
 
 
 def tweet_random_news():
+    print('tweet_random_news function called')
+
     news_data = topic_selector.get_news()
-    message = message_writer.write_news_message(news_data)
-    tweet_text(message=message)
+    if news_data:
+        message = message_writer.write_news_message(news_data)
+        tweet_text(message=message)
+    else:
+        print('no news returned')
 
 
 def tweet_image(image, message):
+    print('tweet_image function called')
+
     files = {'media': image}
     upload_res = oauth.post(MEDIA_UPLOAD_URL, files=files)
     upload_res_data = upload_res.json()
-    media_id = upload_res_data['media_id_string']
+    try:
+        media_id = upload_res_data['media_id_string']
+    except KeyError:
+        print('error uploading image to twitter media')
+        print(upload_res_data)
 
     tweet = {"text": message,
              "media": {"media_ids": [media_id]}}
     tweet_res = oauth.post(url=TWEET_URL, json=tweet)
 
+    if tweet_res.status_code == 200:
+        print('image tweeted successfully')
+    else:
+        print('error sending tweet with attached image')
+        print(tweet_res.status_code, tweet_res.json())
+
 
 def tweet_text(message):
+    print('tweet_text function called')
+
     tweet = {"text": message}
     tweet_res = oauth.post(url=TWEET_URL, json=tweet)
+
+    if tweet_res.status_code == 200:
+        print('tweet successful')
+    else:
+        print('error sending tweet')
+        print(tweet_res.status_code, tweet_res.json())
 
 
 mentions_in_past_hour = get_mentions_in_past_hour()
@@ -127,11 +165,12 @@ if mentions_in_past_hour:
 
 
 current_hour = datetime.utcnow().hour
+print(f'the current hour is {current_hour}')
 
 if current_hour == 8:
     wish_happy_birthdays()
 
-if current_hour == 12:
+if current_hour == 17:
     tweet_nasa_image()
 
 if current_hour == 9 or current_hour == 15 or current_hour == 18 or current_hour == 21:
