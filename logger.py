@@ -12,7 +12,7 @@ class EventLogger:
         now = datetime.now()
         details = sys._getframe(1)
         function = details.f_code.co_name
-        filename = details.f_code.co_filename.split('twitter_bot')[1]
+        filename = details.f_code.co_filename
         line = details.f_lineno
         location_string = f"file: {filename}, function: {function}, line: {line}"
         print(now)
