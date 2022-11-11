@@ -1,13 +1,17 @@
 from requests_oauthlib import OAuth1Session
 from os import getenv
 from dotenv import load_dotenv
+import json
 from datetime import datetime, timedelta
 from messages.message_writer import Message
 from topics.api_connector import Topics
 from birthday.birthday_wisher import Birthday
 from spotify.spotify_song import SpotifySongFinder
+from logger import EventLogger
 
 load_dotenv()
+
+log = EventLogger()
 
 user_id = getenv('TWITTER_USER_ID')
 
@@ -27,7 +31,6 @@ oauth = OAuth1Session(
 
 
 def get_mentions_in_past_hour():
-    print('get_mentions_in_past_hour function called')
 
     dtformat = '%Y-%m-%dT%H:%M:%SZ'
     time = datetime.utcnow()
@@ -41,137 +44,206 @@ def get_mentions_in_past_hour():
 
     mentions_data = mentions_res.json()
 
+    if mentions_res.status_code == 200:
+        log.add_log_entry('request to retrieve mentions data successful')
+    else:
+        log.add_log_entry(
+            entry=f'error with request to retrieve mentions data, status code of response: {mentions_res.status_code}', is_error=True)
+        return None
+
     if mentions_data['meta']['result_count'] > 0:
-        print('mentions data returned')
+        log.add_log_entry(entry='mentions found in the past hour')
         return mentions_data
     else:
-        print('no mentions in past hour')
-        return False
+        log.add_log_entry(entry='no mentions in past hour')
+        return None
 
 
 def reply_to_mentions(mentions):
-    print('reply_to_mentions function called')
 
     for mention in mentions['data']:
 
         message, reply_id, author_id = mention['text'], mention['id'], mention['author_id']
         user = [user['username'] for user in mentions['includes']
                 ['users'] if author_id == user['id']]
-        try:
-            reply_message = select_reply(message, user[0])
 
-            reply = {"text": reply_message, "reply": {
-                "in_reply_to_tweet_id": reply_id}}
-            reply_res = oauth.post(url=TWEET_URL, json=reply)
-        except:
-            continue
+        log.add_log_entry(entry='select_reply function called')
+        reply_message = select_reply(message, user[0])
+
+        reply = {"text": reply_message, "reply": {
+            "in_reply_to_tweet_id": reply_id}}
+        reply_res = oauth.post(url=TWEET_URL, json=reply)
+
+        if reply_res.status_code == 201:
+            log.add_log_entry(
+                entry=f'succesfully sent reply to user: {user}, message: {reply_message}')
+        else:
+            log.add_log_entry(
+                entry=f'error sending reply, response status code: {reply_res.status_code}, user: {user}, message: {message}', is_error=True)
 
 
 def select_reply(message, user):
+
     tweet_words = message.lower().split()
-    print(tweet_words)
     if tweet_words[1] == 'spotify':
-        print('spotify reply')
+        log.add_log_entry(entry='spotify reply selected')
+        try:
+            date = tweet_words[2]
+        except IndexError:
+            log.add_log_entry(
+                entry=f'reply not selected the message was: {message}', is_error=True)
+            return 'Hello there! Reading is hard for robots I can only read certain things. Read my bio.'
+
         song_finder = SpotifySongFinder()
-        date = tweet_words[2]
         song_info = song_finder.get_top_song_info(date)
         reply = message_writer.write_spotify_message(song_info)
+        log.add_log_entry(entry='spotify reply created successfully')
         return reply
+
     elif tweet_words[1] == 'birthday':
-        print('bday reply')
+        log.add_log_entry(entry='birthday reply selected')
         birthday = Birthday()
-        date = tweet_words[2]
-        birthday.add_birthday(user, date)
-        return 'your birthdays in the diary'
+
+        try:
+            date = tweet_words[2]
+        except IndexError:
+            log.add_log_entry(
+                entry=f'reply not selected the message was: {message}', is_error=True)
+            return 'Hello there! Reading is hard for robots I can only read certain things. Read my bio.'
+
+        birthday_added = birthday.add_birthday(user, date)
+        if birthday_added:
+            log.add_log_entry(entry='birthday reply created successfully')
+            return 'your birthdays in the diary'
+        else:
+            return 'your birthday was not added to the diary due to a techincal glitch, please try again'
+
     else:
-        return 'howdy'
+        log.add_log_entry(
+            entry=f'reply not selected the message was: {message}')
+        return 'Hello there! Reading is hard for robots I can only read certain things. Read my bio.'
+
+
+def tweet_weather_forecast():
+
+    weather_data = topic_selector.get_news()
+    if weather_data:
+        message = message_writer.write_weather_message(weather_data)
+        log.add_log_entry(entry='tweet_text function called')
+        tweet_text(message=message)
+    else:
+        log.add_log_entry(
+            entry='no news returned therefore weather tweet not sent', is_error=True)
 
 
 def wish_happy_birthdays():
-    print('wish_happy_birthdays function called')
 
     birthday = Birthday()
     birthdays_today = birthday.check_birthdays()
     if birthdays_today:
         for birthday in birthdays_today:
             bday_tweet = message_writer.write_birthday_message(birthday)
+            log.add_log_entry(entry='tweet_text function called')
             tweet_text(bday_tweet)
 
 
 def tweet_nasa_image():
-    print('tweet_nasa_image function called')
 
     image_data = topic_selector.get_nasa_image()
     if image_data:
         title = image_data['title']
         image_obj = image_data['image']
         message = message_writer.write_nasa_message(title)
+        log.add_log_entry(entry='tweet_image function called')
         tweet_image(image=image_obj, message=message)
     else:
-        print('no image returned')
+        log.add_log_entry(
+            entry='no image data returned therefore no nasa image tweet sent', is_error=True)
 
 
 def tweet_random_news():
-    print('tweet_random_news function called')
 
     news_data = topic_selector.get_news()
     if news_data:
         message = message_writer.write_news_message(news_data)
+        log.add_log_entry(entry='tweet_text function called')
         tweet_text(message=message)
     else:
-        print('no news returned')
+        log.add_log_entry(
+            entry='no news data returned therefore random news tweet not sent')
 
 
 def tweet_image(image, message):
-    print('tweet_image function called')
 
     files = {'media': image}
     upload_res = oauth.post(MEDIA_UPLOAD_URL, files=files)
-    upload_res_data = upload_res.json()
     try:
+        upload_res_data = upload_res.json()
         media_id = upload_res_data['media_id_string']
     except KeyError:
-        print('error uploading image to twitter media')
-        print(upload_res_data)
+        log.add_log_entry(
+            entry=f'error uploading image to twitter media therfore image not tweeted, reponse code of post request: {upload_res.status_code}', is_error=True)
+        log.add_log_entry(entry=upload_res.json(), is_error=True)
+        return None
 
     tweet = {"text": message,
              "media": {"media_ids": [media_id]}}
     tweet_res = oauth.post(url=TWEET_URL, json=tweet)
 
-    if tweet_res.status_code == 200:
-        print('image tweeted successfully')
+    if tweet_res.status_code == 201:
+        log.add_log_entry(entry='image tweeted successfully')
     else:
-        print('error sending tweet with attached image')
-        print(tweet_res.status_code, tweet_res.json())
+        log.add_log_entry(
+            entry=f'error sending tweet with attached image, response code of post request: {tweet_res.status_code}', is_error=True)
+        log.add_log_entry(entry=tweet_res.json(), is_error=True)
 
 
 def tweet_text(message):
-    print('tweet_text function called')
 
     tweet = {"text": message}
     tweet_res = oauth.post(url=TWEET_URL, json=tweet)
 
-    if tweet_res.status_code == 200:
-        print('tweet successful')
+    if tweet_res.status_code == 201:
+        log.add_log_entry(entry=f'tweet successful, message: {message}')
     else:
-        print('error sending tweet')
-        print(tweet_res.status_code, tweet_res.json())
+        log.add_log_entry(
+            entry=f'error sending tweet, message: {message}, reponse code of post request: {tweet_res.status_code}', is_error=True)
+        log.add_log_entry(entry=tweet_res.json())
 
 
+log.add_log_entry(entry='get_mentions_in_past_hour function called')
 mentions_in_past_hour = get_mentions_in_past_hour()
 
 if mentions_in_past_hour:
+    log.add_log_entry(entry='reply_to_mentions function called')
     reply_to_mentions(mentions=mentions_in_past_hour)
 
 
 current_hour = datetime.utcnow().hour
-print(f'the current hour is {current_hour}')
+log.add_log_entry(entry=f'the current hour is {current_hour}')
 
-if current_hour == 8:
+if current_hour == getenv('WEATHER_HOUR'):
+    log.add_log_entry(entry='tweet_weather_forecast function called')
+    tweet_weather_forecast()
+
+if current_hour == getenv('BIRTHDAY_HOUR'):
+    log.add_log_entry(entry='wish_happy_birthdays function called')
     wish_happy_birthdays()
 
-if current_hour == 17:
+if current_hour == getenv('NASA_HOUR'):
+    log.add_log_entry(entry='tweet_nasa_image function called')
     tweet_nasa_image()
 
-if current_hour == 9 or current_hour == 15 or current_hour == 18 or current_hour == 21:
+news_hours = json.loads(getenv('NEWS_HOURS'))
+if current_hour in news_hours:
+    log.add_log_entry(entry='tweet_random_news function called')
     tweet_random_news()
+
+if current_hour == 1:
+    try:
+        log.delete_old_log_entries()
+        log.add_log_entry_to_datbase(
+            entry='successfully deleted log entries older than two days')
+    except:
+        log.add_log_entry_to_datbase(
+            entry='error deleting log entries older than two days', is_error=True)
