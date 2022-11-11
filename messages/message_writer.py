@@ -1,4 +1,5 @@
 from datetime import datetime, timedelta
+from random import choice
 
 
 class Message:
@@ -12,7 +13,19 @@ class Message:
 
         news_article = data['article_data']
         news_topic = data['news_category']
-        message = f"some interesting {news_topic} news:\n{news_article['title']}\n{news_article['url']}"
+        article_string = f"\n{news_article['title']}\n{news_article['url']}"
+
+        message_options = [f"some fascinating {news_topic} news:{article_string}",
+                           f"wow look at this {news_topic} news:{article_string}",
+                           f"interesting developments in the {news_topic} world, read about it here: {article_string}",
+                           f"never a dull moment in {news_topic}. {article_string}",
+                           f"{news_topic} news that has peaked my interest: {article_string}",
+                           f"can't believe this {news_topic} news. {article_string}",
+                           f"seen this {news_topic} news coming a mile off. {article_string}",
+                           f"been waiting a long time for {news_topic} news like this.",
+                           f"{news_topic}! {news_topic}! read all about it!! {article_string}"]
+
+        message = choice(message_options)
         return message
 
     def write_weather_message(self, data):
@@ -48,7 +61,7 @@ class Message:
             return message
         else:
             message = f'Could not find the song on Billoards website for the date: {date}. Try another date or check format is correct YYYY-MM-DD.'
-            return
+            return message
 
     def write_birthday_message(self, data):
         """input is list item containing a dictionary from the Birthday class's check_birthdays method, writes a message to be tweeted"""
