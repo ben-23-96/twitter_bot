@@ -126,7 +126,7 @@ def select_reply(message, user):
 
 def tweet_weather_forecast():
 
-    weather_data = topic_selector.get_news()
+    weather_data = topic_selector.get_weather()
     if weather_data:
         message = message_writer.write_weather_message(weather_data)
         log.add_log_entry(entry='tweet_text function called')
@@ -222,15 +222,19 @@ if mentions_in_past_hour:
 current_hour = datetime.utcnow().hour
 log.add_log_entry(entry=f'the current hour is {current_hour}')
 
-if current_hour == getenv('WEATHER_HOUR'):
+weather_hour = getenv('WEATHER_HOUR')
+birthday_hour = getenv('BIRTHDAY_HOUR')
+nasa_hour = getenv('NASA_HOUR')
+
+if current_hour == int(weather_hour):
     log.add_log_entry(entry='tweet_weather_forecast function called')
     tweet_weather_forecast()
 
-if current_hour == getenv('BIRTHDAY_HOUR'):
+if current_hour == int(birthday_hour):
     log.add_log_entry(entry='wish_happy_birthdays function called')
     wish_happy_birthdays()
 
-if current_hour == getenv('NASA_HOUR'):
+if current_hour == int(nasa_hour):
     log.add_log_entry(entry='tweet_nasa_image function called')
     tweet_nasa_image()
 
@@ -239,11 +243,11 @@ if current_hour in news_hours:
     log.add_log_entry(entry='tweet_random_news function called')
     tweet_random_news()
 
-if current_hour == 1:
+if current_hour == 19:
     try:
         log.delete_old_log_entries()
-        log.add_log_entry_to_datbase(
+        log.add_log_entry(
             entry='successfully deleted log entries older than two days')
     except:
-        log.add_log_entry_to_datbase(
+        log.add_log_entry(
             entry='error deleting log entries older than two days', is_error=True)

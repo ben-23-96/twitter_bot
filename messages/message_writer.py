@@ -22,7 +22,7 @@ class Message:
                            f"{news_topic} news that has peaked my interest: {article_string}",
                            f"can't believe this {news_topic} news. {article_string}",
                            f"seen this {news_topic} news coming a mile off. {article_string}",
-                           f"been waiting a long time for {news_topic} news like this.",
+                           f"been waiting a long time for {news_topic} news like this. {article_string}",
                            f"{news_topic}! {news_topic}! read all about it!! {article_string}"]
 
         message = choice(message_options)
