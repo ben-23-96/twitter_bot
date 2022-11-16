@@ -243,7 +243,7 @@ if current_hour in news_hours:
     log.add_log_entry(entry='tweet_random_news function called')
     tweet_random_news()
 
-if current_hour == 19:
+if current_hour == 1:
     try:
         log.delete_old_log_entries()
         log.add_log_entry(
