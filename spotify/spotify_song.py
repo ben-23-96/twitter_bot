@@ -31,14 +31,14 @@ class SpotifySongFinder:
             entry=f'scraping billboard for top song on date: {date}')
 
         response = get(
-            f'https://www.billboard.com/charts/hot-100/{date}/')
+            f'https://www.billboard.com/charts/hot-100/{date}/')  # get website html
 
         website_html = response.text
 
         soup = BeautifulSoup(website_html, 'html.parser')
 
         soup_data = soup.find_all(
-            name='li', class_='o-chart-results-list__item', limit=4)
+            name='li', class_='o-chart-results-list__item', limit=4)  # scrap page for top song
         try:
             soup_song = soup_data[3]
         except IndexError:
@@ -59,12 +59,13 @@ class SpotifySongFinder:
 
         log.add_log_entry(entry='finding song uri code on spotify')
         result = self.sp.search(
-            q=f'artist:{artist}%20track:{song}', type='track')
+            q=f'artist:{artist}%20track:{song}', type='track')  # search using song and artist
         try:
             uri = result['tracks']['items'][0]['uri']
             url = result['tracks']['items'][0]['external_urls']['spotify']
             uri_code = uri.split(':')[2]
         except (IndexError, KeyError) as error:
+            # search using song only
             result = self.sp.search(q=f'track:{song}', type='track')
             try:
                 uri = result['tracks']['items'][0]['uri']

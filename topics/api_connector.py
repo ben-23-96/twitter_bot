@@ -79,13 +79,14 @@ class Topics:
             nasa_data = response.json()
             try:
                 title = nasa_data['title']
+                # get the image url from the nasa api
                 image_url = nasa_data['hdurl']
             except KeyError:
                 log.add_log_entry(
                     entry='key error nasa api response did not contain a hdurl, possible different format today', is_error=True)
                 return None
             try:
-                response = get(image_url, stream=True)
+                response = get(image_url, stream=True)  # stream the image
                 image_object = response.content
                 image_data = {'title': title, 'image': image_object}
             except:

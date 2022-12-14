@@ -40,6 +40,7 @@ def get_mentions_in_past_hour():
     params = {"user.fields": "username",
               "expansions": "author_id", "start_time": one_hour}
 
+    # retrieve data for the mentions recieved in the past hour from the twitter api
     mentions_res = oauth.get(url=MENTIONS_LOOKUP_URL, params=params)
 
     mentions_data = mentions_res.json()
@@ -51,6 +52,7 @@ def get_mentions_in_past_hour():
             entry=f'error with request to retrieve mentions data, status code of response: {mentions_res.status_code}', is_error=True)
         return None
 
+    # if there are mentions from the past hour
     if mentions_data['meta']['result_count'] > 0:
         log.add_log_entry(entry='mentions found in the past hour')
         return mentions_data
@@ -61,17 +63,18 @@ def get_mentions_in_past_hour():
 
 def reply_to_mentions(mentions):
 
-    for mention in mentions['data']:
+    for mention in mentions['data']:  # loop for each tweet mention recieved
 
         message, reply_id, author_id = mention['text'], mention['id'], mention['author_id']
         user = [user['username'] for user in mentions['includes']
-                ['users'] if author_id == user['id']]
+                ['users'] if author_id == user['id']]  # username of user who mentioned the bot account
 
         log.add_log_entry(entry='select_reply function called')
-        reply_message = select_reply(message, user[0])
+        reply_message = select_reply(message, user[0])  # create reply messsage
 
         reply = {"text": reply_message, "reply": {
             "in_reply_to_tweet_id": reply_id}}
+        # send reply tweet using twitter api
         reply_res = oauth.post(url=TWEET_URL, json=reply)
 
         if reply_res.status_code == 201:
@@ -83,7 +86,7 @@ def reply_to_mentions(mentions):
 
 
 def select_reply(message, user):
-
+    # messages to be recieved in form @botaccount spotify/birthday YYYY-MM-DD and strings handled accordingly
     tweet_words = message.lower().split()
     if tweet_words[1] == 'spotify':
         log.add_log_entry(entry='spotify reply selected')
@@ -149,7 +152,7 @@ def wish_happy_birthdays():
 
 def tweet_nasa_image():
 
-    image_data = topic_selector.get_nasa_image()
+    image_data = topic_selector.get_nasa_image()  # retrieve nasa image from nasa api
     if image_data:
         title = image_data['title']
         image_obj = image_data['image']
@@ -176,9 +179,11 @@ def tweet_random_news():
 def tweet_image(image, message):
 
     files = {'media': image}
+    # upload image using twitter api
     upload_res = oauth.post(MEDIA_UPLOAD_URL, files=files)
     try:
         upload_res_data = upload_res.json()
+        # media id string indentifing uploaded image
         media_id = upload_res_data['media_id_string']
     except KeyError:
         log.add_log_entry(
@@ -188,6 +193,7 @@ def tweet_image(image, message):
 
     tweet = {"text": message,
              "media": {"media_ids": [media_id]}}
+    # send a tweet containing the uploaded image indentified by media id string
     tweet_res = oauth.post(url=TWEET_URL, json=tweet)
 
     if tweet_res.status_code == 201:

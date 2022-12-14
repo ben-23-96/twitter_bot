@@ -40,6 +40,7 @@ class Birthday:
         birthdays_today = []
 
         try:
+            # retrieve birthdays from database
             birthdays = session.query(Birthdays).all()
         except Exception as e:
             log.add_log_entry(
@@ -53,7 +54,7 @@ class Birthday:
             year, month, day = birthday.birthday.split('-')
             bday = date(int(year), int(month), int(day))
 
-            if bday.day == today.day and bday.month == today.month:
+            if bday.day == today.day and bday.month == today.month:  # check if birthday is today
                 log.add_log_entry(
                     entry=f'birthday found on {today} for {birthday.name}')
                 age = round((today - bday).days/365)
