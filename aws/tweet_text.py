@@ -7,18 +7,20 @@ import json
 logger = logging.getLogger()
 logger.setLevel(logging.INFO)
 
+
 def lambda_handler(event, context):
     try:
         message = event['message']
         logger.info('tweet_text function called')
 
         TWEET_URL = 'https://api.twitter.com/2/tweets'
-        
+
         oauth = OAuth1Session(
             environ.get("TWITTER_API_KEY"),
             client_secret=environ.get("TWITTER_API_SECRET"),
             resource_owner_key=environ.get("TWITTER_API_ACCESS_TOKEN"),
-            resource_owner_secret=environ.get("TWITTER_API_ACCESS_TOKEN_SECRET"),
+            resource_owner_secret=environ.get(
+                "TWITTER_API_ACCESS_TOKEN_SECRET"),
         )
 
         tweet = {"text": message}
@@ -33,17 +35,19 @@ def lambda_handler(event, context):
                 }),
             }
         else:
-            logger.error(f'error sending tweet, message: {message}, reponse code of post request: {tweet_res.status_code}')
+            logger.error(
+                f'error sending tweet, message: {message}, reponse code of post request: {tweet_res.status_code}')
             logger.error(tweet_res.json())
             raise Exception({
                 'message': 'error sending tweet',
                 'response_code': tweet_res.status_code,
                 'response_json': tweet_res.json(),
             })
-    
+
     except Exception as e:
-        logger.error('An error occurred: {}'.format(e))
-        
+        logger.exception(
+            'An error occurred, traceback message:\n {}'.format(e))
+
         return {
             'statusCode': 500,
             'body': json.dumps({
