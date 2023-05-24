@@ -25,12 +25,11 @@ def lambda_handler(event, context):
             Payload=json.dumps({'message': message})
         )
 
-        if 'FunctionError' in response:
-            error_response = json.loads(response['Payload'].read())
+        response_payload = json.loads(response['Payload'].read())
+        if 'FunctionError' in response or response_payload.get('statusCode') != 200:
             logger.error('Error sending tweet')
-            logger.error(error_response)
-            raise Exception(error_response)
-
+            logger.error(response_payload)
+            raise Exception(response_payload)
         # Handle the response from the 'tweet_text' Lambda function
         if response['StatusCode'] == 200:
             logger.info('Tweet successfully sent')
@@ -104,6 +103,3 @@ def write_news_message(data):
 
     message = choice(message_options)
     return message
-
-
-print(lambda_handler(event="", context=""))
