@@ -11,6 +11,7 @@ python-dotenv = "*"
 requests-oauthlib = "*"
 sqlalchemy = "*"
 mysqlclient = "*"
+boto3 = "*"
 
 [dev-packages]
 autopep8 = "*"
