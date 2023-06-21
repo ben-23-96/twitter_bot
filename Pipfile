@@ -7,10 +7,8 @@ name = "pypi"
 requests = "*"
 beautifulsoup4 = "*"
 spotipy = "*"
-python-dotenv = "*"
 requests-oauthlib = "*"
-sqlalchemy = "*"
-mysqlclient = "*"
+boto3 = "*"
 
 [dev-packages]
 autopep8 = "*"
